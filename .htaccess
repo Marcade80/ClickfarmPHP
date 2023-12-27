@@ -1,0 +1,20 @@
+# Turn rewrite engine on
+Options +FollowSymlinks -MultiViews
+RewriteEngine on
+
+DirectoryIndex index.php
+
+RewriteBase /
+
+# REST Responses
+RewriteCond %{HTTP:Accept} application/json [NC]
+RewriteRule (.*) REST.php [L]
+
+# HTML Responses
+RewriteCond %{REQUEST_URI} !/public [NC]
+RewriteRule (.*) index.php [L]
+
+# nonexistent files in assets dir
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteRule (.*) 404.php

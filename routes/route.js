@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const connectorController = require('../controllers/connectorController.js');
 
-// add get route that displays the index.ejs view
+// add get route that displays the main.php view
 router.get('/', (req, res) => {
     res.render('index');
 });

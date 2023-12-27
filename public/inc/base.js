@@ -39,6 +39,7 @@ function identUser() {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
+        "Accept": "application/json",
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
       },
@@ -337,9 +338,11 @@ var objPrijslijst = {
 
 // Itemprijs ophalen uit Database
 function getPrice() {
+  console.log('Fetching resource pricelist');
   fetch("/resources/getprice", {
     method: "GET",
     headers: {
+      "Accept": "application/json",
       "Cache-Control": "no-cache",
     },
   })
@@ -349,9 +352,10 @@ function getPrice() {
       }
       return response.json();
     })
-    .then((objPl) => {
-      objPrijslijst = objPl;
-      showMessage("Backend ophalen prijs:", objPrijslijst);
+    .then((rResult) => {
+      if (rResult['code'] !== 1) showMessage( rResult['reason'] );
+      objPrijslijst = rResult['data'];
+      showMessage("Backend ophalen prijs", rResult['reason'] );
     })
     .catch((e) => {
       console.error(
@@ -4942,6 +4946,7 @@ async function pushProgress() {
   const response = await fetch("/connector", {
     method: "POST",
     headers: {
+      "Accept": "application/json",
       "Content-Type": "application/json",
       "Cache-Control": "no-cache",
     },
@@ -4980,6 +4985,7 @@ async function saveFixed() {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
+        "Accept": "application/json",
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
       },
@@ -5025,6 +5031,7 @@ async function getSaveGame(uuid) {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
+        "Accept": "application/json",
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
       },
@@ -5071,6 +5078,7 @@ function registerSale(tt, amount, profit) {
   fetch(url, {
     method: "POST",
     headers: {
+      "Accept": "application/json",
       "Content-Type": "application/json",
       "Cache-Control": "no-cache",
     },
@@ -5091,6 +5099,7 @@ function registerUsage(typeUsage, amount) {
   fetch("/resources/update", {
     method: "POST",
     headers: {
+      "Accept": "application/json",
       "Content-Type": "application/json",
       "Cache-Control": "no-cache",
     },
@@ -5119,12 +5128,15 @@ function getSaleInfo() {
   fetch("/resources/saleinfo", {
     method: "GET",
     headers: {
+      "Accept": "application/json",
       "Cache-Control": "no-cache",
     },
   })
     .then((response) => response.json())
-    .then((data) => {
-      showMessage("Backend verkoopstats:", data);
+    .then((rResult) => {
+      if (rResult['code'] !== 1) showMessage( rResult['reason'] );
+      data = rResult['data'];
+      showMessage("Backend verkoopstats:", rResult['reason']);
       objSalesInfo = data;
       objMarket.show();
     })
