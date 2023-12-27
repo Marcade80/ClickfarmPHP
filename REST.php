@@ -40,6 +40,21 @@ if (isset($_SERVER['CONTENT_TYPE'])) {
 $REST_REPLY = new cJSON();
 
 switch ($URL_PATH[0]) {
+  case 'user':
+    switch ($URL_PATH[1]) {
+      case 'save':
+        \classes\cUser::getInstance()->userSave( $REST_REPLY, $REST_REQUEST );
+        break;
+      case 'restore':
+        \classes\cUser::getInstance()->userRestore( $REST_REPLY, $REST_REQUEST );
+        break;
+      case 'error': // Internal server error
+        http_response_code( 500 ); // Internal server error
+        break;
+      default:  // 404 NOT  FOUND
+        goto default404;
+    }
+    break;
   case 'resources':
     switch ($URL_PATH[1]) {
       case 'getprice':
@@ -49,7 +64,8 @@ switch ($URL_PATH[0]) {
         \classes\cResources::getInstance()->getSalesInfo( $REST_REPLY );
         break;
       case 'update':
-        // $REST_REPLY->setResult(null, 200, '');
+        \classes\cResources::getInstance()->setAmount( $REST_REPLY, $REST_REQUEST );
+        if ($REST_REPLY->RESULT_CODE === 1 ) \classes\cResources::getInstance()->getSalesInfo( $REST_REPLY );
         break;
       case 'error': // Internal server error
         http_response_code( 500 ); // Internal server error

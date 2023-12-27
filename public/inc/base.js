@@ -20,39 +20,8 @@ function turnDebug(inputDB) {
 
 // guid vastleggen
 function identUser() {
-  let newUser = localStorage.getItem("onlineUserID") || 0;
-
-  // In the case of a not yet online registered user:
-  if (newUser == 0) {
-    let uuid = localStorage.getItem("guid") || guid();
-    localStorage.setItem("guid", uuid);
-
-    let progress = saveProgress();
-
-    let data = {
-      id: uuid,
-      savegame: progress,
-      type: "save_initial",
-    };
-
-    fetch("/saveinit", {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
-      },
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((objSaveGame) => {
-        localStorage.setItem("onlineUserID", objSaveGame._id);
-      });
-
-    newUser = 1;
-    localStorage.setItem("newUser", newUser);
-  }
+  let uuid = localStorage.getItem("guid") || guid();
+  localStorage.setItem("guid", uuid);
 }
 
 // genereer een uniek GUID
@@ -292,7 +261,7 @@ var objMoney = {
     objMoney.showUpdate(description, moneyProfit);
     made = +made + +moneyProfit;
     localStorage.setItem("made", made);
-    registerSale(tt, amount, moneyProfit);
+    // registerSale(tt, amount, moneyProfit);
     if (quickSell === 1) {
       quickSellMenu();
     }
@@ -4933,32 +4902,6 @@ function saveProgress() {
   return btoa(JSON.stringify(lsExport));
 }
 
-// Savegame uploaden naar backend
-async function pushProgress() {
-  const progressString = saveProgress();
-  const uuid = localStorage.getItem("onlineUserID");
-  const data = {
-    id: uuid,
-    savegame: progressString,
-    type: "save",
-  };
-
-  const response = await fetch("/connector", {
-    method: "POST",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    console.error("Error:", response.status, response.statusText);
-    return;
-  }
-}
-
 var objSaveGame = {
   Created_date: 0,
   _id: 0,
@@ -4969,19 +4912,17 @@ var objSaveGame = {
 };
 
 // Savegame maken-
-
 async function saveFixed() {
   var progress = saveProgress();
   var uuid = localStorage.getItem("guid");
 
   var data = {
-    id: uuid,
-    savegame: progress,
-    type: "save_pers",
+    UID : uuid,
+    Data: progress,
   };
 
   try {
-    let response = await fetch("/savepers", {
+    let response = await fetch("/user/save", {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -4992,8 +4933,10 @@ async function saveFixed() {
     });
 
     if (response.ok) {
-      let objSaveGame = await response.json();
-      var uuid = objSaveGame._saveid;
+      let rResult = await response.json();
+      if (rResult['code'] !== 1) showMessage( rResult['reason'] );
+      objSaveGame = rResult['data'];
+
       var dummy = document.createElement("input");
       document.body.appendChild(dummy);
       dummy.setAttribute("id", "dummy_id");
@@ -5023,11 +4966,11 @@ function importFile() {
 // Ophalen savegame via API
 async function getSaveGame(uuid) {
   const data = {
-    id: uuid,
+    UID : uuid,
   };
 
   try {
-    const response = await fetch("/restore", {
+    const response = await fetch("user/restore", {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -5038,23 +4981,20 @@ async function getSaveGame(uuid) {
     });
 
     if (response.ok) {
-      const objSaveGame = await response.json();
-      // If no savegame found, alert the user and return
-      if (objSaveGame.sg === "none") {
-        alert("No savegame found!");
-        return;
+      const rResult = await response.json();
+      if (rResult['code'] === 1) {
+        objSaveGame = rResult['data'];
+
+        const decodedFile = JSON.parse(atob(objSaveGame['Data']));
+        localStorage.clear();
+        decodedFile.forEach((item) => {
+          const lsFields = item.split(":");
+          localStorage.setItem(lsFields[0], lsFields[1]);
+        });
+        location.reload();
+      } else {
+        showMessage( rResult['reason'] );
       }
-      localStorage.setItem("onlineUserID", objSaveGame._id);
-      console.log(objSaveGame);
-      const decodedFile = JSON.parse(atob(objSaveGame.savegame));
-      localStorage.clear();
-      decodedFile.forEach((item) => {
-        const lsFields = item.split(":");
-        localStorage.setItem(lsFields[0], lsFields[1]);
-      });
-      localStorage.setItem("onlineUserID", 0);
-      identUser();
-      location.reload();
     } else {
       console.error(`Error: ${response.status} ${response.statusText}`);
     }
@@ -5091,11 +5031,9 @@ function registerSale(tt, amount, profit) {
 // Centraal vastleggen verkoop
 function registerUsage(typeUsage, amount) {
   const data = {
-    reso: typeUsage,
-    amount: parseInt(amount),
-    req: "update",
+    ResType : typeUsage,
+    Amount: parseInt(amount),
   };
-
   fetch("/resources/update", {
     method: "POST",
     headers: {
@@ -5111,10 +5049,14 @@ function registerUsage(typeUsage, amount) {
       }
       return response.json();
     })
-    .then((data) => {
-      showMessage("Backend verkoopresponse:", data);
-      objSalesInfo = data;
-      objMarket.show();
+    .then((rResult) => {
+      if (rResult['code'] !== 1) { showMessage( rResult['reason'] );
+      } else {
+        let data = rResult['data'];
+        showMessage("Backend verkoopresponse:", data);
+        objSalesInfo = data;
+        objMarket.show();
+      }
     })
     .catch((e) => {
       console.error("Error:", e.message);
@@ -5255,7 +5197,7 @@ var objMarket = {
         ")' id='BB" +
         resType +
         scale +
-        "'>" +
+        "' disabled>" +
         scale +
         "x</button> ";
     } while (i < 1000001);

@@ -40,12 +40,9 @@ class cDatabase {
         'primary_key' => 'ID',
         'fields' => array(
           'ID'                     => array('type' => 'int'),
-          'created'                => array('type' => 'int'),
-          'user'                   => array('type' => 'char'),
-          'savegame'               => array('type' => 'char'),
-          'persistent'             => array('type' => 'int'),
-          'modified'               => array('type' => 'int'),
-          'saveid'                 => array('type' => 'char'),
+          'UID'                    => array('type' => 'char'),
+          'Data'                   => array('type' => 'char'),
+          'Update_Timestamp'       => array('type' => 'int'),
         ),
       ),
       'resources' => array(
@@ -55,21 +52,8 @@ class cDatabase {
           'ID'                     => array('type' => 'int'),
           'ResType'                => array('type' => 'char'),
           'Amount'                 => array('type' => 'int'),
-          'Previous'               => array('type' => 'int'),
           'Price'                  => array('type' => 'int'),
-          'PriceIndex'             => array('type' => 'int'),
-        ),
-      ),
-      'sales' => array(
-        'table' => 'sales',
-        'primary_key' => 'ID',
-        'fields' => array(
-          'ID'                     => array('type' => 'int'),
-          'user'                   => array('type' => 'char'),
-          'item'                   => array('type' => 'int'),
-          'profit'                 => array('type' => 'int'),
-          'created'                => array('type' => 'int'),
-          'amount'                 => array('type' => 'int'),
+          'Update_Timestamp'       => array('type' => 'int'),
         ),
       ),
     );
