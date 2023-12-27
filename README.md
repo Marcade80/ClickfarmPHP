@@ -1,3 +1,7 @@
+# ClickfarmPHP
+
+Kloon van het spel Clickfarm door Herman Ronk, maar dan weer zonder Docker/NodeJS, backend terug naar PHP.
+
 # Clickfarm
 Clickfarm is een "simpel" webspelletje dat ik in mijn vrije tijd geschreven heb. Omdat ik het niet de aandacht kan geven die het wel verdient wil ik het nu open stellen voor bijdragen vanuit de community. Dus vandaar deze repository :).
 
