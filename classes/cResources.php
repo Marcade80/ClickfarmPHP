@@ -25,16 +25,17 @@ class cResources
     $aResource = array();
     self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::SELECTONE, 'resources',$aResource, 'ResType="Oil"' );
 
-    if (time() - self::$UPDATE_INTERVAL > $aResource['Update_Timestamp'] ) {
-      $aResource = array( 'Price' => rand(1, 21), 'Update_Timestamp' => time() );
+    $iNewTimestamp = $aResource['Update_Timestamp'] + self::$UPDATE_INTERVAL;
+    if (time() - self::$UPDATE_INTERVAL >= $aResource['Update_Timestamp'] ) {
+      $aResource = array( 'Price' => rand(1, 21), 'Update_Timestamp' => $iNewTimestamp );
       self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aResource, 'ResType="Oil"' );
-      $aResource = array( 'Price' => rand(1, 500), 'Update_Timestamp' => time() );
+      $aResource = array( 'Price' => rand(1, 500), 'Update_Timestamp' => $iNewTimestamp );
       self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aResource, 'ResType="GrainLow"' );
-      $aResource = array( 'Price' => rand(1, 250), 'Update_Timestamp' => time() );
+      $aResource = array( 'Price' => rand(1, 250), 'Update_Timestamp' => $iNewTimestamp );
       self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aResource, 'ResType="GrainHigh"' );
-      $aResource = array( 'Price' => rand(100, 900), 'Update_Timestamp' => time() );
+      $aResource = array( 'Price' => rand(100, 900), 'Update_Timestamp' => $iNewTimestamp );
       self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aResource, 'ResType="FlourLow"' );
-      $aResource = array( 'Price' => rand(350, 450), 'Update_Timestamp' => time() );
+      $aResource = array( 'Price' => rand(350, 450), 'Update_Timestamp' => $iNewTimestamp );
       self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aResource, 'ResType="FlourHigh"' );
     }
   }
