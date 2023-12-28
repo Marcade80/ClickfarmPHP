@@ -1,7 +1,5 @@
 <?php
 
-namespace classes;
-
 class cResources
 {
   private static int $UPDATE_INTERVAL = 10;

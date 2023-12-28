@@ -2,8 +2,6 @@
 
 global $URL_PATH, $REST_REQUEST, $REST_REPLY;
 
-use classes\cJSON;
-
 require_once ('common.php');
 
 header('Cache-Control: no-cache, must-revalidate');
@@ -11,8 +9,6 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 header('Content-type: application/json');
 header('Access-Control-Allow-Origin: '. $_SERVER['HTTP_HOST'] );
 header('X-XSS-Protection: 1; mode=block');
-/** @noinspection SpellCheckingInspection */
-header('X-Content-Type-Options=nosniff');
 header('X-Frame-Options: DENY');
 
 // Parse request body
@@ -43,10 +39,10 @@ switch ($URL_PATH[0]) {
   case 'user':
     switch ($URL_PATH[1]) {
       case 'save':
-        \classes\cUser::getInstance()->userSave( $REST_REPLY, $REST_REQUEST );
+        cUser::getInstance()->userSave( $REST_REPLY, $REST_REQUEST );
         break;
       case 'restore':
-        \classes\cUser::getInstance()->userRestore( $REST_REPLY, $REST_REQUEST );
+        cUser::getInstance()->userRestore( $REST_REPLY, $REST_REQUEST );
         break;
       case 'error': // Internal server error
         http_response_code( 500 ); // Internal server error
@@ -58,14 +54,14 @@ switch ($URL_PATH[0]) {
   case 'resources':
     switch ($URL_PATH[1]) {
       case 'getprice':
-        \classes\cResources::getInstance()->getPrice( $REST_REPLY );
+        cResources::getInstance()->getPrice( $REST_REPLY );
         break;
       case 'saleinfo':
-        \classes\cResources::getInstance()->getSalesInfo( $REST_REPLY );
+        cResources::getInstance()->getSalesInfo( $REST_REPLY );
         break;
       case 'update':
-        \classes\cResources::getInstance()->setAmount( $REST_REPLY, $REST_REQUEST );
-        if ($REST_REPLY->RESULT_CODE === 1 ) \classes\cResources::getInstance()->getSalesInfo( $REST_REPLY );
+        cResources::getInstance()->setAmount( $REST_REPLY, $REST_REQUEST );
+        if ($REST_REPLY->RESULT_CODE === 1 ) cResources::getInstance()->getSalesInfo( $REST_REPLY );
         break;
       case 'error': // Internal server error
         http_response_code( 500 ); // Internal server error

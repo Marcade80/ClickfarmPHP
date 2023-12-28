@@ -21,10 +21,10 @@ define("ROOT", $_SERVER['DOCUMENT_ROOT']);
 
 // Auto load classes when they are used
 spl_autoload_register( function ( string $sClassPath ) : void {
-  $sClassFullPath = ROOT . DIRECTORY_SEPARATOR . $sClassPath . '.php';
+  $sClassFullPath = ROOT . DIRECTORY_SEPARATOR . 'classes' .  DIRECTORY_SEPARATOR . $sClassPath . '.php';
   if (!file_exists( $sClassFullPath)) { error_log('Class ' . $sClassPath . ' not found.'); return; }
 
-  include_once ( $sClassFullPath );
+  require_once ( $sClassFullPath );
 });
 
 // DB Credentials

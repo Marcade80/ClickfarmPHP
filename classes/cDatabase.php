@@ -1,10 +1,5 @@
 <?php
 
-namespace classes;
-
-use AllowDynamicProperties;
-use Exception;
-
 enum DBActions : int {
   case SELECT = 0;
   case INSERT = 1;

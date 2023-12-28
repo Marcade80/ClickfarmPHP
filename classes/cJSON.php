@@ -1,7 +1,5 @@
 <?php
 
-namespace classes;
-
 class cJSON
 {
   public int $RESULT_CODE = 1;

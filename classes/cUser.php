@@ -1,7 +1,5 @@
 <?php
 
-namespace classes;
-
 class cUser
 {
   private static cUser $INSTANCE;

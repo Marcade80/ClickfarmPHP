@@ -11,7 +11,7 @@ RewriteCond %{HTTP:Accept} application/json [NC]
 RewriteRule (.*) REST.php [L]
 
 # HTML Responses
-RewriteCond %{REQUEST_URI} !/public [NC]
+RewriteCond %{REQUEST_URI} !public [NC]
 RewriteRule (.*) index.php [L]
 
 # nonexistent files in assets dir

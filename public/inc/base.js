@@ -307,7 +307,6 @@ var objPrijslijst = {
 
 // Itemprijs ophalen uit Database
 function getPrice() {
-  console.log('Fetching resource pricelist');
   fetch("/resources/getprice", {
     method: "GET",
     headers: {
