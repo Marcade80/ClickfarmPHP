@@ -2,6 +2,7 @@ var spend = parseInt(localStorage.getItem("spend")) || 10;
 var made = parseInt(localStorage.getItem("made")) || 0;
 var PriceFactor = 25;
 var debug = parseInt(localStorage.getItem("debug")) || 0;
+var autosave = parseInt(localStorage.getItem("autosave")) || 0;
 var CSStransitionEnd = whichTransitionEvent();
 
 // voorbereiding voor debug mogelijkheden.
@@ -15,6 +16,20 @@ function turnDebug(inputDB) {
       '<i class="far fa-fw fa-check-square"></i> Zet debug uit';
   } else {
     eldebugBTN.innerHTML = '<i class="far fa-fw fa-square"></i> Zet debug aan';
+  }
+}
+
+// auto-save
+function turnAutosave(inputAS) {
+  var elautosaveBTN = document.getElementById("autosaveBTN");
+  if (inputAS === 1) autosave = 1 - autosave;
+
+  localStorage.setItem("autosave", autosave);
+  if (autosave === 1) {
+    elautosaveBTN.innerHTML =
+      '<i class="far fa-fw fa-check-square"></i> Zet auto-save uit';
+  } else {
+    elautosaveBTN.innerHTML = '<i class="far fa-fw fa-square"></i> Zet auto-save aan';
   }
 }
 
@@ -118,6 +133,7 @@ window.onload = function () {
   showQuickSell(0);
   turnAutoClose(0);
   turnDebug(0);
+  turnAutosave(0);
   // Initialiseren overige gegevens en display
   showPrice();
 };
@@ -4910,6 +4926,41 @@ var objSaveGame = {
   __v: 0,
 };
 
+// Autosave
+function fnAutoSave() {
+  var progress = saveProgress();
+  var uuid = localStorage.getItem("guid");
+
+  var data = {
+    UID : uuid,
+    Data: progress,
+  };
+
+  fetch("/user/save", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((rResult) => {
+      showMessage("Autosave", rResult['reason'] );
+    })
+    .catch((e) => {
+      console.error(
+        "There was a problem with your fetch operation: " + e.message
+      );
+    });
+}
+
 // Savegame maken-
 async function saveFixed() {
   var progress = saveProgress();
@@ -5447,5 +5498,7 @@ var loopsProduction = setInterval(function () {
       objFuelRod.wastePayment();
     if (quickSell === 1) quickSellMenu();
     if (objFuelCellFactory.amount > 0) objFuelCellFactory.produce();
+
+    if ( (autosave) && (+timerCounter % 10 === 0) ) fnAutoSave();
   }
 }, 1000);

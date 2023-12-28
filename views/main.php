@@ -53,6 +53,7 @@
                         <button id="autocloseBTN" onclick="turnAutoClose(1)" class="dropdown-item"><i class="far fa-fw fa-square"></i> Zet auto-sluit berichten aan</button>
                         <button id="debugBTN" onclick="turnDebug(1)" class="dropdown-item"><i class="far fa-fw fa-square"></i> Zet debug aan</button>
                         <hr>
+                        <button id="autosaveBTN" onclick="turnAutosave(1)" class="dropdown-item"><i class="far fa-fw fa-square"></i> Zet auto-save aan</button>
                         <button onclick="saveFixed()" class="dropdown-item"><i class="fas fa-fw fa-upload"></i> Exporteer save ID</button>
                         <button onclick="importFile()" class="dropdown-item"><i class="fas fa-fw fa-download"></i> Importeer game/save ID</button>
                     </div>
