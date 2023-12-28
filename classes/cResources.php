@@ -25,8 +25,10 @@ class cResources
     $aResource = array();
     self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::SELECTONE, 'resources',$aResource, 'ResType="Oil"' );
 
-    $iNewTimestamp = $aResource['Update_Timestamp'] + self::$UPDATE_INTERVAL;
     if (time() - self::$UPDATE_INTERVAL >= $aResource['Update_Timestamp'] ) {
+      $iNewTimestamp = $aResource['Update_Timestamp'] + self::$UPDATE_INTERVAL;
+      if (time() - self::$UPDATE_INTERVAL > $iNewTimestamp ) $iNewTimestamp = time() + self::$UPDATE_INTERVAL;
+
       $aResource = array( 'Price' => rand(1, 21), 'Update_Timestamp' => $iNewTimestamp );
       self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aResource, 'ResType="Oil"' );
       $aResource = array( 'Price' => rand(1, 500), 'Update_Timestamp' => $iNewTimestamp );
