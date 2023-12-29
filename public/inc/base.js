@@ -1,6 +1,5 @@
 var spend = parseInt(localStorage.getItem("spend")) || 10;
 var made = parseInt(localStorage.getItem("made")) || 0;
-var PriceFactor = 25;
 var debug = parseInt(localStorage.getItem("debug")) || 0;
 var autosave = parseInt(localStorage.getItem("autosave")) || 0;
 var CSStransitionEnd = whichTransitionEvent();
@@ -91,7 +90,6 @@ window.onload = function () {
   ]);
   identUser();
   document.getElementById("sellMenu").style.display = "none";
-  getPrice();
   objMoney.init();
   objEnergy.init();
   objGrainSilo.init();
@@ -134,6 +132,7 @@ window.onload = function () {
   turnAutoClose(0);
   turnDebug(0);
   turnAutosave(0);
+  objQueue.process();
   // Initialiseren overige gegevens en display
   showPrice();
 };
@@ -174,8 +173,7 @@ function FixNumber(InputNumber) {
 
 // Functie van het goed weergeven van afgeronde gewichten
 function AfrondenGewicht(InputGewicht) {
-  var afgerond = Math.round(+InputGewicht * 100) / 100;
-  return afgerond;
+  return Math.round(+InputGewicht * 100) / 100;
 }
 
 // Player object
@@ -267,6 +265,53 @@ var objPlayerInfo = {
   },
 };
 
+// Process queue object
+var objQueue = {
+  queue: [],
+  add: function ( data ) {
+    this.queue.push( JSON.parse( data ) );
+  },
+  process: function () {
+
+    fetch("/queue", {
+      method: "POST",
+      body: JSON.stringify(this.queue),
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((rResult) => {
+        if (rResult['data'].hasOwnProperty('getprice')) {
+          objPrijslijst = rResult['data']['getprice'];
+          showMessage("QUEUE: Backend prijs opgehaald ", ')' );
+        }
+        if (rResult['data'].hasOwnProperty('saleinfo')) {
+          let data = rResult['data']['saleinfo'];
+          showMessage("QUEUE: Backend verkoop info opgehaald ", ')');
+          objSalesInfo = data;
+          objMarket.show();
+        }
+
+        showMessage("QUEUE", rResult['reason'] );
+        this.queue = [];
+      })
+      .catch((e) => {
+        console.error(
+          "There was a problem with your fetch operation: " + e.message
+        );
+      });
+
+  },
+};
+
 // Money object
 var objMoney = {
   amount: 1,
@@ -320,33 +365,6 @@ var objPrijslijst = {
   Coal: 0,
   Oil: 0,
 };
-
-// Itemprijs ophalen uit Database
-function getPrice() {
-  fetch("/resources/getprice", {
-    method: "GET",
-    headers: {
-      "Accept": "application/json",
-      "Cache-Control": "no-cache",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((rResult) => {
-      if (rResult['code'] !== 1) showMessage( rResult['reason'] );
-      objPrijslijst = rResult['data'];
-      showMessage("Backend ophalen prijs", rResult['reason'] );
-    })
-    .catch((e) => {
-      console.error(
-        "There was a problem with your fetch operation: " + e.message
-      );
-    });
-}
 
 //Oil object
 var objOil = {
@@ -4931,34 +4949,7 @@ function fnAutoSave() {
   var progress = saveProgress();
   var uuid = localStorage.getItem("guid");
 
-  var data = {
-    UID : uuid,
-    Data: progress,
-  };
-
-  fetch("/user/save", {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((rResult) => {
-      showMessage("Autosave", rResult['reason'] );
-    })
-    .catch((e) => {
-      console.error(
-        "There was a problem with your fetch operation: " + e.message
-      );
-    });
+  objQueue.add( '{"user" : {"save" : {"UID" : "'.concat(uuid, '", "Data" : "', progress, '"}}}') );
 }
 
 // Savegame maken-
@@ -5033,9 +5024,10 @@ async function getSaveGame(uuid) {
     if (response.ok) {
       const rResult = await response.json();
       if (rResult['code'] === 1) {
+        console.log( rResult );
         objSaveGame = rResult['data'];
 
-        const decodedFile = JSON.parse(atob(objSaveGame['Data']));
+        const decodedFile = JSON.parse(atob(objSaveGame['restore']));
         localStorage.clear();
         decodedFile.forEach((item) => {
           const lsFields = item.split(":");
@@ -5080,62 +5072,11 @@ function registerSale(tt, amount, profit) {
 
 // Centraal vastleggen verkoop
 function registerUsage(typeUsage, amount) {
-  const data = {
-    ResType : typeUsage,
-    Amount: parseInt(amount),
-  };
-  fetch("/resources/update", {
-    method: "POST",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then((rResult) => {
-      if (rResult['code'] !== 1) { showMessage( rResult['reason'] );
-      } else {
-        let data = rResult['data'];
-        showMessage("Backend verkoopresponse:", data);
-        objSalesInfo = data;
-        objMarket.show();
-      }
-    })
-    .catch((e) => {
-      console.error("Error:", e.message);
-    });
+  objQueue.add( '{"resources" : {"update" : {"ResType" : "'.concat(typeUsage, '", "Amount" : ', parseInt(amount).toString(), '}}}') );
 }
 
 // Ophalen verkoopstats
 var objSalesInfo = {};
-
-function getSaleInfo() {
-  fetch("/resources/saleinfo", {
-    method: "GET",
-    headers: {
-      "Accept": "application/json",
-      "Cache-Control": "no-cache",
-    },
-  })
-    .then((response) => response.json())
-    .then((rResult) => {
-      if (rResult['code'] !== 1) showMessage( rResult['reason'] );
-      data = rResult['data'];
-      showMessage("Backend verkoopstats:", rResult['reason']);
-      objSalesInfo = data;
-      objMarket.show();
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
-}
 
 // Genoeg geld functie
 function moneyCheck(amountNeeded) {
@@ -5162,6 +5103,8 @@ var objMarket = {
         objMoney.use(+cost * amount);
         objEgg.add(+amount);
         registerUsage("eggs", -Math.abs(amount));
+        objSalesInfo.eggs = objSalesInfo.eggs - amount;
+        objMarket.show();
       }
     }
     if (resType === "steel") {
@@ -5173,6 +5116,8 @@ var objMarket = {
         objMoney.use(+cost * amount);
         objSteel.add(+amount);
         registerUsage("steel", -Math.abs(amount));
+        objSalesInfo.steel = objSalesInfo.steel - amount;
+        objMarket.show();
       }
     }
     if (resType === "used_fuelrod") {
@@ -5184,6 +5129,8 @@ var objMarket = {
         objMoney.use(+cost * amount);
         objFuelRod.wasteFunction(+amount);
         registerUsage("used_fuelrod", -Math.abs(amount));
+        objSalesInfo.used_fuelrod = objSalesInfo.used_fuelrod - amount;
+        objMarket.show();
       }
     }
   },
@@ -5265,7 +5212,6 @@ var objMarket = {
     } while (i < 1000001);
   },
   init: function () {
-    getSaleInfo();
     objMarket.showButtons();
   },
 };
@@ -5486,19 +5432,19 @@ var loopsProduction = setInterval(function () {
       if (+objFuelCellFactory.amount > 0)
         objFuelRod.calculateWastePrice(50000, 99999);
     }
-    if (+timerCounter % 10 === 0) getPrice();
     if (+timerCounter % 10 === 0 && +objMines.uraniumAmountActive >= 1)
       objUraniumMine.produce();
     if (+timerCounter % 15 === 0) {
       objPastaHelper.action();
       if (objPlasticFactory.workers > 0) objPlasticFactory.produce(1);
     }
-    if (!isNaN(objSalesInfo.eggs) && +timerCounter % 30 === 0) getSaleInfo();
     if (+timerCounter % 60 === 0 && +objFuelRod.waste > 0)
       objFuelRod.wastePayment();
     if (quickSell === 1) quickSellMenu();
     if (objFuelCellFactory.amount > 0) objFuelCellFactory.produce();
 
     if ( (autosave) && (+timerCounter % 10 === 0) ) fnAutoSave();
+    if (+timerCounter % 10 === 0) objQueue.process();
+
   }
 }, 1000);

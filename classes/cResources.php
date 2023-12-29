@@ -2,7 +2,7 @@
 
 class cResources
 {
-  private static int $UPDATE_INTERVAL = 10;
+  private static int $UPDATE_INTERVAL = 9;
 
   private static cResources $INSTANCE;
   private static cDatabase $DB;
@@ -48,11 +48,12 @@ class cResources
 
     $iNumAffectedRows = 0;
     $aRecords = array();
-    self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::SELECT, 'resources',$aRecords );
-    $rResources = $REST_REPLY->getDataByKey('resources');
+    $local_REST_REPLY = new cJSON();
+    self::$DB::doQuery($local_REST_REPLY, $iNumAffectedRows, DBActions::SELECT, 'resources',$aRecords );
+    $rResources = $local_REST_REPLY->getDataByKey('resources');
     $rResourcePrice = array();
     foreach ($rResources as $rResource) $rResourcePrice[ $rResource['ResType'] ] = $rResource['Price'];
-    $REST_REPLY->setData( $rResourcePrice );
+    $REST_REPLY->appendData( array( 'getprice' => $rResourcePrice) );
     return $REST_REPLY->RESULT_CODE;
   }
 
@@ -62,11 +63,12 @@ class cResources
 
     $iNumAffectedRows = 0;
     $aRecords = array();
-    self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::SELECT, 'resources',$aRecords );
-    $rResources = $REST_REPLY->getDataByKey('resources');
+    $local_REST_REPLY = new cJSON();
+    self::$DB::doQuery($local_REST_REPLY, $iNumAffectedRows, DBActions::SELECT, 'resources',$aRecords );
+    $rResources = $local_REST_REPLY->getDataByKey('resources');
     $rResourceAmount = array();
     foreach ($rResources as $rResource) $rResourceAmount[ $rResource['ResType'] ] = $rResource['Amount'];
-    $REST_REPLY->setData( $rResourceAmount );
+    $REST_REPLY->appendData( array( 'saleinfo' => $rResourceAmount) );
     return $REST_REPLY->RESULT_CODE;
   }
 
@@ -85,13 +87,14 @@ class cResources
 
     $iNumAffectedRows = 0;
     $aRecord = array();
-    self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::SELECTONE, 'resources',$aRecord, 'ResType="' . $sResType . '"' );
+    $local_REST_REPLY = new cJSON();
+    self::$DB::doQuery($local_REST_REPLY, $iNumAffectedRows, DBActions::SELECTONE, 'resources',$aRecord, 'ResType="' . $sResType . '"' );
     if ($iNumAffectedRows === 0) {
       $REST_REPLY->setResult(null,-1,'ERR_INVALID_RESTYPE');
       return $REST_REPLY->RESULT_CODE;
     }
     $aRecord['Amount'] = $aRecord['Amount'] + $iAmount;
-    self::$DB::doQuery($REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aRecord, 'ResType="' . $sResType . '"' );
+    self::$DB::doQuery($local_REST_REPLY, $iNumAffectedRows, DBActions::UPDATE, 'resources',$aRecord, 'ResType="' . $sResType . '"' );
 
     return $REST_REPLY->RESULT_CODE;
   }

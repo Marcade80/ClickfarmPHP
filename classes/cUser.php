@@ -53,7 +53,7 @@ class cUser
       $REST_REPLY->setResult(null,-2,'ERR_INVALID_UID');
       return $REST_REPLY->RESULT_CODE;
     }
-    $REST_REPLY->setData( array('Data' => $aRecord['Data']) );
+    $REST_REPLY->appendData( array('restore' => $aRecord['Data']) );
     return $REST_REPLY->RESULT_CODE;
   }
 

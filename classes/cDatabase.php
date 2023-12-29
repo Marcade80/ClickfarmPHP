@@ -10,7 +10,7 @@ enum DBActions : int {
 }
 
 class cDatabase {
-  private static bool $DEBUG = true;
+  private static bool $DEBUG = false;
   private static cDatabase $INSTANCE;
 
   private static object $MYSQLI;

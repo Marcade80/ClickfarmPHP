@@ -36,6 +36,9 @@ if (isset($_SERVER['CONTENT_TYPE'])) {
 $REST_REPLY = new cJSON();
 
 switch ($URL_PATH[0]) {
+  case 'queue':
+    cQueue::getInstance()->processQueue( $REST_REPLY, $REST_REQUEST );
+    break;
   case 'user':
     switch ($URL_PATH[1]) {
       case 'save':
